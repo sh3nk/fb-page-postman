@@ -1,0 +1,17 @@
+{
+    "name": "simon/facebook-page-postman",
+    "description": "Plugin for exchanging posts between FB and WP",
+    "type": "project",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Simon Shenk",
+            "email": "simon@senk.si"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {"FBPPostman\\": "./inc"}
+    }
+}
