@@ -12,7 +12,6 @@ use \FBPPostman\Api\FacebookPage\Event;
 class Post extends Main {
 
     private $FB;
-    private $ACCESS_TOKEN;
 
     private $post;
 
@@ -31,10 +30,9 @@ class Post extends Main {
     public $albums = array();
 
 
-    public function __construct($post, $fb, $accessToken) {
+    public function __construct($post, $fb) {
         $this->post = $post;
         $this->FB = $fb;
-        $this->ACCESS_TOKEN = $accessToken;
     }
 
     public function register() {
@@ -62,7 +60,12 @@ class Post extends Main {
             return;
         }
 
-        foreach ($this->getAttachments() as $attachment) {
+        $attachments = $this->getAttachments();
+        if (!$attachments) {
+            return;
+        }
+
+        foreach ($attachments as $attachment) {
             $attachment = new Attachment($attachment);
             $attachment->register();
 
@@ -89,7 +92,12 @@ class Post extends Main {
             return;
         }
 
-        $event = new Event($this->getEvent());
+        $eventData = $this->getEvent();
+        if (!$eventData) {
+            return;
+        }
+
+        $event = new Event($eventData);
         $event->register();
         
         if (!isset($this->featuredImage) && isset($event->imgSrc)) {
@@ -165,6 +173,7 @@ class Post extends Main {
     /**
     * Get attachments of the post
     * @return   GraphEdge   Response of /attachments request
+    * @return   null        On error
     */
     private function getAttachments() {
         $subattachmentLimit = 150; // option (1K max?)
@@ -175,16 +184,28 @@ class Post extends Main {
         $isAlbumCover = true; // option (default true)
         $hasCover = false;
 
-        return $this->graphGet('/' . $this->id . $attachmentsRequest, $this->FB, $this->ACCESS_TOKEN)->getGraphEdge();
+        $response = $this->graphGet('/' . $this->id . $attachmentsRequest, $this->FB);
+        if ($response) {
+            return $response->getGraphEdge();
+        }
+
+        return;
     }
 
     /**
     * Get event from the post
     * @return   GraphNode   Node of event
+    * @return   null        On error
     */
     private function getEvent() {
         $eventRequest = '/' . $this->objectId . '?fields=cover';
-        return $this->graphGet($eventRequest, $this->FB, $this->ACCESS_TOKEN)->getGraphNode();
+
+        $response = $this->graphGet($eventRequest, $this->FB);
+        if ($response) {
+            return $response->getGraphNode();
+        }
+
+        return;
     }
 
     /**

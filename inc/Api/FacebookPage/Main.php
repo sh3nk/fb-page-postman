@@ -10,7 +10,6 @@ use \FBPPostman\Api\FacebookPage\Post;
 class Main {
 
     private $FB;
-    private $ACCESS_TOKEN;
     private $pageId;
     private $publishQueue = array(); // array of posts to be published on next hook
 
@@ -19,16 +18,18 @@ class Main {
     private $publishHook = 'after_setup_theme';
     private $categoryName = 'facebook';
 
+    private $errorText = ''; // Text for error notices
+
 
     public function register() {
         // Get options set in plugin settings page
         $appId = get_option('fbpp_app_id');
         $appSecret = get_option('fbpp_app_secret');
-        $this->ACCESS_TOKEN = get_option('fbpp_access_token');
+        $accessToken = get_option('fbpp_access_token');
         $this->pageId = get_option('fbpp_page_id');
         
         // Check if all settings are set, else display notice and stop execution
-        if (!$appId || !$appSecret || !$this->ACCESS_TOKEN || !$this->pageId) {
+        if (!$appId || !$appSecret || !$accessToken || !$this->pageId) {
             add_action('admin_notices', array($this, 'errorNoticeSettings'));
             return;
         }
@@ -40,6 +41,7 @@ class Main {
         $this->FB = new \Facebook\Facebook([
             'app_id' => $appId,
             'app_secret' => $appSecret,
+            'default_access_token' => $accessToken,
             'default_graph_version' => FBPP__GRAPH_VERSION
         ]);
 
@@ -53,9 +55,13 @@ class Main {
     * Request latest $limit posts from FB and add them to an array for publishment
     */
     private function latestPosts() {
-        
-        foreach($this->getPosts() as $post) {
-            $post = new Post($post, $this->FB, $this->ACCESS_TOKEN);
+        $posts = $this->getPosts();
+        if (!$posts) {
+            return; // No posts received; possibly FB connection error
+        }
+
+        foreach($posts as $post) {
+            $post = new Post($post, $this->FB);
             $post->register();
 
             // Check if post was already published to WP
@@ -242,32 +248,47 @@ class Main {
     /**
     * Get posts from page
     * @return   GraphEdge   Object of posts with requested fields
+    * @return   null        On error
     */
     private function getPosts() {
         $request = '/' . $this->pageId . '/posts?fields=' . $this->fields . '&limit=' . $this->limit;
-        return $this->graphGet($request, $this->FB, $this->ACCESS_TOKEN)->getGraphEdge();
+        $response = $this->graphGet($request, $this->FB);
+        if ($response) {
+            return $response->getGraphEdge();
+        }
+        
+        return;
     }
 
     /**
     * Graph API GET request with error checking
     * @param    $req    Request string
     * @param    $fb     Facebook PHP SDK core object
-    * @param    $accessToken    Graph API access token
     * @return   Facebook\GraphNodes\*   PHP Graph API Response object
+    * @return   null    On error
     */
-    protected function graphGet($req, $fb, $accessToken) {
+    protected function graphGet($req, $fb) {
         try {
             return $fb->get(
-                $req,
-                $accessToken
+                $req
             );
-        } catch(Facebook\Exceptions\FacebookResponseException $e) {
-            echo 'Graph returned an error: ' . $e->getMessage();
-            exit;
-        } catch(Facebook\Exceptions\FacebookSDKException $e) {
-            echo 'Facebook SDK returned an error: ' . $e->getMessage();
-            exit;
+        } catch (\Facebook\Exceptions\FacebookResponseException $e) {
+            $this->errorText = 'Graph returned an error: ' . $e->getMessage();
+            add_action('admin_notices', array($this, 'errorNoticeFacebook'));
+            return;
+        } catch (\Facebook\Exceptions\FacebookSDKException $e) {
+            $this->errorText = 'Facebook SDK returned an error: ' . $e->getMessage();
+            add_action('admin_notices', array($this, 'errorNoticeFacebook'));
+            return;
         }
+    }
+
+    /**
+    * Handler to display error notice for FB API errors
+    */
+    public function errorNoticeFacebook() {
+        echo    '<div class="error notice"><p>Facebook Page Postman: ' . 
+                $this->errorText . '</p></div>';
     }
 
     /**
