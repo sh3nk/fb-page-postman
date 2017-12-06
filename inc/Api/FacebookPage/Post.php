@@ -54,7 +54,7 @@ class Post extends Main {
         $this->name = $this->post->getField('name');
         $this->objectId = $this->post->getField('object_id');
 
-        $this->title = wp_strip_all_tags(substr($this->message, 0, 25) . '...');
+        $this->title = wp_strip_all_tags($this->getTitle());
 
         $this->parseMessage();
     }
@@ -218,6 +218,65 @@ class Post extends Main {
         }
 
         return;
+    }
+
+    /**
+    * Generate title for post by parsing message body
+    * @return   string  Title for WP post
+    */
+    private function getTitle() {
+        $title = '';
+        $defaultTitle = 'Facebook';
+
+        if ($this->createdTime) {
+            $defaultTitle .= ' ' . $this->createdTime;
+        }
+
+        if (!$this->message) {
+            return $defaultTitle;
+        }
+
+        $length = mb_strlen($this->message);
+
+        if ($length <= 1) {
+            return $defaultTitle;
+        }
+        if ($length <= 60) {
+            // Remove punctuation at end of string
+            $title = rtrim($this->message, ".,;: \t\n\r");
+            return $title;
+        }
+    
+        // Title should be 50-60 chars (displayed in Google results)
+        $title = mb_substr($this->message, 0, 57);
+    
+        $newlineIdx = false;
+        $lastSpaceIdx = false;
+    
+        if (   ($newlineIdx = mb_strrpos($title, "\r\n")) !== false 
+            || ($newlineIdx = mb_strrpos($title, "\n")) !== false 
+            || ($newlineIdx = mb_strrpos($title, "\r")) !== false) {
+    
+            // Take string including last full paragraph
+            $title = mb_substr($title, 0, $newlineIdx);
+            $title = rtrim($title, ".,;: \t\n\r");
+            $title = preg_replace("/\s+.?$/", '', $title); // Remove trailing single letters
+        } else if (($lastSpaceIdx = mb_strrpos($title, ' ')) !== false) {
+            // Take string including last full word
+            $title = mb_substr($title, 0, $lastSpaceIdx);
+        }
+    
+        if ($newlineIdx === false) {
+            $title = rtrim($title, ".!?,;: \t\n\r");
+            $title = preg_replace("/\s+.?$/", '', $title);
+            $title .= '...';
+        }
+        
+        if (strlen($title) < 1) {
+            return $defaultTitle;
+        }
+
+        return $title;
     }
 
     /**
