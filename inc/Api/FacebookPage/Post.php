@@ -29,6 +29,13 @@ class Post extends Main {
     public $featuredImage = NULL;
     public $albums = array();
 
+    private $styleClassVideo = 'fbpp-video';
+    private $styleClassPhoto = 'fbpp-photo';
+    private $styleClassEvent = 'fbpp-event';
+    private $styleClassMessage = 'fbpp-message';
+    private $styleClassOriginalLink = 'fbpp-original-link';
+    private $styleClassVideoWrapper = 'fbpp-video-wrapper';
+    private $styleClassEventLink = 'fbpp-event-link';
 
     public function __construct($post, $fb) {
         $this->post = $post;
@@ -114,10 +121,11 @@ class Post extends Main {
             return __('Wrong post type', 'fbpp-textd');
         }
 
-        $content =  '<p>' . $this->message . '</p>' 
-                    . '[embed]' . $this->link . '[/embed]';
+        $content =  '<div class="' . $this->styleClassMessage . '"><p>' . $this->message . '</p></div>';
+        $content .= '<div class="' . $this->styleClassVideoWrapper . '">[embed]' . $this->link . '[/embed]</div>';
 
         $content .= $this->originalLink();
+        $content = '<div class="' . $this->styleClassVideo . '">' . $content . '</div>';
 
         return $content;
     }
@@ -133,13 +141,14 @@ class Post extends Main {
 
         $content = '';
 
-        $content .= '<p>' . $this->message . '</p>';
+        $content .= '<div class="' . $this->styleClassMessage . '"><p>' . $this->message . '</p></div>';
 
         if ($this->statusType == 'shared_story') {
             $content .= '[embed]' . $this->link . '[/embed]';
         }
 
         $content .= $this->originalLink();
+        $content = '<div class="' . $this->styleClassPhoto . '">' . $content . '</div>';
 
         return $content;
     }
@@ -155,19 +164,22 @@ class Post extends Main {
 
         $content = '';
 
-        $content .= '<p>' . $this->message . '</p>';
+        $content .= '<div class="' . $this->styleClassMessage . '"><p>' . $this->message . '</p></div>';
         
         if ($this->statusType != 'created_event') {
-            $content .= '<p><a href="' . $this->link . '">' . $this->name . '</a></p>';
+            $content .= '<p class="' . $this->styleClassEventLink . '"><a href="' 
+                        . $this->link . '">' . $this->name . '</a></p>';
         }
 
         $content .= $this->originalLink();
+        $content = '<div class="' . $this->styleClassEvent . '">' . $content . '</div>';
 
         return $content;
     }
 
     private function originalLink() {
-        return '<br><p><a href="' . $this->permalinkUrl . '">' . __('Link to original post', 'fbpp-textd') . '</a></p>';
+        return  '<br><p class="' . $this->styleClassOriginalLink . '"><a href="' 
+                . $this->permalinkUrl . '">' . __('Link to original post', 'fbpp-textd') . '</a></p>';
     }
 
     /**
