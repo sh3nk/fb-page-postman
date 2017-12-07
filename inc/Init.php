@@ -12,11 +12,11 @@ final class Init {
     * @return array Full list of classes
     */
     public static function get_services() {
-        return [
-            Pages\Settings::class,
-            Base\SettingsLink::class,
-            Api\FacebookPage\Main::class
-        ];
+        return array(
+            Pages\Settings::getClass(),
+            Base\SettingsLink::getClass(),
+            Api\FacebookPage\Main::getClass()
+        );
     }
 
     /**

@@ -38,12 +38,12 @@ class Main {
         require_once FBPP__PLUGIN_PATH . '/vendor/Facebook/autoload.php';
 
         // Create object for core Graph API interaction
-        $this->FB = new \Facebook\Facebook([
+        $this->FB = new \Facebook\Facebook(array(
             'app_id' => $appId,
             'app_secret' => $appSecret,
             'default_access_token' => $accessToken,
             'default_graph_version' => FBPP__GRAPH_VERSION
-        ]);
+        ));
 
         // Register handler for publishing posts
         add_action($this->publishHook, array($this, 'handlePublish'));
@@ -305,6 +305,10 @@ class Main {
     public function errorNoticeCreate() {
         echo    '<div class="error notice is-dismissible"><p>Facebook Page Postman: ' . 
                 __('Could not create post.', 'fbpp-textd') . '</p></div>';
+    }
+
+    public static function getClass() {
+         return get_class();
     }
 
 }

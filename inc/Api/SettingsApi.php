@@ -37,16 +37,16 @@ class SettingsApi {
 
         $admin_page = $this->admin_pages[0];
 
-        $subpage = [
-            [
+        $subpage = array(
+            array(
                 'parent_slug' => $admin_page['menu_slug'],
                 'page_title' => $admin_page['page_title'], 
                 'menu_title' => ($title && is_string($title)) ? $title : $admin_page['menu_title'], 
                 'capability' => $admin_page['capability'], 
                 'menu_slug' => $admin_page['menu_slug'], 
                 'callback' => $admin_page['callback']
-            ]
-        ];
+            )
+        );
 
         $this->admin_subpages = $subpage;
 

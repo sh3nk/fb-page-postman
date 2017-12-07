@@ -17,4 +17,8 @@ class SettingsLink {
         return $links;
     }
 
+    public static function getClass() {
+        return get_class();
+    }
+
 }

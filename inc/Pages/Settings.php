@@ -25,8 +25,8 @@ class Settings {
     }
 
     public function setPages() {
-        $this->pages = [
-            [
+        $this->pages = array(
+            array(
                 'page_title' => 'Facebook Page Postman', 
                 'menu_title' => 'FB Postman', 
                 'capability' => 'manage_options', 
@@ -34,8 +34,8 @@ class Settings {
                 'callback' => array($this, 'cbDashboard'),
                 'icon_url' => 'dashicons-facebook', 
                 'position' => 110
-            ]
-        ];
+            )
+        );
     }
 
     public function setSettings() {
@@ -161,6 +161,10 @@ class Settings {
         $value = esc_attr(get_option('fbpp_access_token'));
         echo    '<input type="text" class="regular-text" name="fbpp_access_token" value="' . $value . 
                 '" placeholder="' . __('Your Facebook app access token...', 'fbpp-textd') . '">';
+    }
+
+    public static function getClass() {
+        return get_class();
     }
 
 }
