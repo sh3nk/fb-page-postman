@@ -48,6 +48,7 @@ define('FBPP__PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('FBPP__PLUGIN_URL', plugin_dir_url(__FILE__));
 define('FBPP__PLUGIN_NAME', plugin_basename(__FILE__));
 define('FBPP__GRAPH_VERSION', 'v2.10');
+define('FBPP__PHP_VERSION', '5.3');
 
 // Require ./inc once with Composer Autoload
 if (file_exists(dirname(__FILE__) . '/vendor/autoload.php')) {

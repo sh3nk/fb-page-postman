@@ -11,6 +11,7 @@ use \FBPPostman\Api\FacebookPage\Event;
 
 class Post extends Main {
 
+    // Connection to FB: FB object if using PHP SDK, otherwise access token
     private $FB;
 
     private $post;
@@ -20,6 +21,7 @@ class Post extends Main {
 
     public $id;
     public $message;
+    private $messageTags;
     public $createdTime;
     public $permalinkUrl; // Link to original post on Facebook
     public $link; // Link to media content
@@ -43,16 +45,35 @@ class Post extends Main {
     }
 
     public function register() {
-        $this->statusType = $this->post->getField('status_type');
-        $this->type = $this->post->getField('type');
-        $this->id = $this->post->getField('id');
-        $this->message = $this->post->getField('message');
-        // $this->createdTime = $this->post->getField('created_time');
-        $this->createdTime = date_format($this->post->getField('created_time'), 'Y-m-d H:i:s');
-        $this->permalinkUrl = $this->post->getField('permalink_url');
-        $this->link = $this->post->getField('link');
-        $this->name = $this->post->getField('name');
-        $this->objectId = $this->post->getField('object_id');
+        if (FBPP__PHP_VERSION == '5.6') {
+            $this->statusType = $this->post->getField('status_type');
+            $this->type = $this->post->getField('type');
+            $this->id = $this->post->getField('id');
+            $this->message = $this->post->getField('message');
+            $this->messageTags = $this->post->getField('message_tags');
+            if ($this->messageTags && !$this->messageTags->getFieldNames()) { // Mark no tags as null
+                $this->messageTags = null;
+            }
+            // $this->createdTime = $this->post->getField('created_time');
+            $this->createdTime = date_format($this->post->getField('created_time'), 'Y-m-d H:i:s');
+            $this->permalinkUrl = $this->post->getField('permalink_url');
+            $this->link = $this->post->getField('link');
+            $this->name = $this->post->getField('name');
+            $this->objectId = $this->post->getField('object_id');
+        } else {
+            $this->statusType = (isset($this->post['status_type'])) ? $this->post['status_type'] : null;
+            $this->type = (isset($this->post['type'])) ? $this->post['type'] : null;
+            $this->id = (isset($this->post['id'])) ? $this->post['id'] : null;
+            $this->message = (isset($this->post['message'])) ? $this->post['message'] : null;
+            $this->messageTags = (isset($this->post['message_tags'])) ? $this->post['message_tags'] : null;
+            $this->createdTime = (isset($this->post['created_time'])) 
+                                    ? date('Y-m-d H:i', strtotime($this->post['created_time'])) 
+                                    : date('Y-m-d H:i');
+            $this->permalinkUrl = (isset($this->post['permalink_url'])) ? $this->post['permalink_url'] : null;
+            $this->link = (isset($this->post['link'])) ? $this->post['link'] : null;
+            $this->name = (isset($this->post['name'])) ? $this->post['name'] : null;
+            $this->objectId = (isset($this->post['object_id'])) ? $this->post['object_id'] : null;
+        }
 
         $this->title = wp_strip_all_tags($this->getTitle());
 
@@ -185,20 +206,28 @@ class Post extends Main {
     /**
     * Get attachments of the post
     * @return   GraphEdge   Response of /attachments request
+    * @return   array       Array of attachments if using basic get
     * @return   null        On error
     */
     private function getAttachments() {
         $subattachmentLimit = 150; // option (1K max?)
         $attachmentsFields = 'url,title,type,media,subattachments.limit(' . $subattachmentLimit . '){title,media,type}';
-        $attachmentsRequest = '/attachments' . '?fields=' . $attachmentsFields;
+        $attachmentsRequest = '/' . $this->id . '/attachments' . '?fields=' . $attachmentsFields;
 
         // Set first image of album as cover if no single image in post
         $isAlbumCover = true; // option (default true)
         $hasCover = false;
 
-        $response = $this->graphGet('/' . $this->id . $attachmentsRequest, $this->FB);
-        if ($response) {
-            return $response->getGraphEdge();
+        if (FBPP__PHP_VERSION == '5.6') {
+            $response = $this->graphGet($attachmentsRequest, $this->FB);
+            if ($response) {
+                return $response->getGraphEdge();
+            }
+        } else {
+            $response = $this->basicGet($attachmentsRequest, $this->FB, true);
+            if ($response) {
+                return $response;
+            }
         }
 
         return;
@@ -207,14 +236,22 @@ class Post extends Main {
     /**
     * Get event from the post
     * @return   GraphNode   Node of event
+    * @return   array       Array of event properties if using basic get
     * @return   null        On error
     */
     private function getEvent() {
         $eventRequest = '/' . $this->objectId . '?fields=cover';
 
-        $response = $this->graphGet($eventRequest, $this->FB);
-        if ($response) {
-            return $response->getGraphNode();
+        if (FBPP__PHP_VERSION == '5.6') {
+            $response = $this->graphGet($eventRequest, $this->FB);
+            if ($response) {
+                return $response->getGraphNode();
+            }
+        } else {
+            $response = $this->basicGet($eventRequest, $this->FB, false);
+            if ($response) {
+                return $response;
+            }
         }
 
         return;
@@ -285,25 +322,31 @@ class Post extends Main {
     */
     private function parseMessage() {
         $message = $this->message;
-        $messageTags = $this->post->getField('message_tags');
+        $messageTags = $this->messageTags;
 
         // Properly strip all HTML tags
         $message = wp_strip_all_tags($message);
     
         // Handle message tags - links to page tags
         // Field 'message_tags' must exist and must be non-empty
-        if ($messageTags && $messageTags->getFieldNames()) {
+        if ($messageTags) {
             $additionalOffset = 0; // increase offset if <a> tags are inserted
             
             foreach($messageTags as $tag) {
-                if ($tag->getField('type') != 'page' && $tag->getField('type') != 'event') {
+                $tagType = (FBPP__PHP_VERSION == '5.6') ? $tag->getField('type') : $tag['type'];
+                if ($tagType != 'page' && $tagType != 'event') {
                     continue;
                 }
     
-                $tagLink = '<a href="https://www.facebook.com/' . $tag->getField('id') . '">';
-    
-                $tagOffset = $tag->getField('offset') + $additionalOffset;
-                $tagLength = $tag->getField('length');
+                if (FBPP__PHP_VERSION == '5.6') {
+                    $tagLink = '<a href="https://www.facebook.com/' . $tag->getField('id') . '">';
+                    $tagOffset = $tag->getField('offset') + $additionalOffset;
+                    $tagLength = $tag->getField('length');
+                } else {
+                    $tagLink = '<a href="https://www.facebook.com/' . $tag['id'] . '">';
+                    $tagOffset = $tag['offset'] + $additionalOffset;
+                    $tagLength = $tag['length'];
+                }
     
                 $message = mb_substr($message, 0, $tagOffset)
                             . $tagLink 

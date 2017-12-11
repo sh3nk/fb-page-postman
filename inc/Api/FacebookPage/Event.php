@@ -18,7 +18,9 @@ class Event {
 
     public function register() {
         if ($this->fieldsExist(array('cover', 'source'), $this->event)) {
-            $this->imgSrc = $this->event->getField('cover')->getField('source');
+            $this->imgSrc = (FBPP__PHP_VERSION == '5.6') 
+                            ? $this->event->getField('cover')->getField('source') 
+                            : $this->event['cover']['source'];
         }
     }
 

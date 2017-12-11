@@ -10,6 +10,7 @@ use \FBPPostman\Api\FacebookPage\Post;
 class Main {
 
     private $FB;
+    private $accessToken;
     private $pageId;
     private $publishQueue = array(); // array of posts to be published on next hook
 
@@ -25,25 +26,27 @@ class Main {
         // Get options set in plugin settings page
         $appId = get_option('fbpp_app_id');
         $appSecret = get_option('fbpp_app_secret');
-        $accessToken = get_option('fbpp_access_token');
+        $this->accessToken = get_option('fbpp_access_token');
         $this->pageId = get_option('fbpp_page_id');
         
         // Check if all settings are set, else display notice and stop execution
-        if (!$appId || !$appSecret || !$accessToken || !$this->pageId) {
+        if (!$appId || !$appSecret || !$this->accessToken || !$this->pageId) {
             add_action('admin_notices', array($this, 'errorNoticeSettings'));
             return;
         }
 
-        // Require FB PHP SDK
-        require_once FBPP__PLUGIN_PATH . '/vendor/Facebook/autoload.php';
+        if (FBPP__PHP_VERSION == '5.6') {
+            // Require FB PHP SDK
+            require_once FBPP__PLUGIN_PATH . '/vendor/Facebook/autoload.php';
 
-        // Create object for core Graph API interaction
-        $this->FB = new \Facebook\Facebook(array(
-            'app_id' => $appId,
-            'app_secret' => $appSecret,
-            'default_access_token' => $accessToken,
-            'default_graph_version' => FBPP__GRAPH_VERSION
-        ));
+            // Create object for core Graph API interaction
+            $this->FB = new \Facebook\Facebook(array(
+                'app_id' => $appId,
+                'app_secret' => $appSecret,
+                'default_access_token' => $this->accessToken,
+                'default_graph_version' => FBPP__GRAPH_VERSION
+            ));
+        }
 
         // Register handler for publishing posts
         add_action($this->publishHook, array($this, 'handlePublish'));
@@ -61,7 +64,11 @@ class Main {
         }
 
         foreach($posts as $post) {
-            $post = new Post($post, $this->FB);
+            if (FBPP__PHP_VERSION == '5.6') {
+                $post = new Post($post, $this->FB);
+            } else {
+                $post = new Post($post, $this->accessToken);
+            }
             $post->register();
 
             // Check if post was already published to WP
@@ -248,13 +255,21 @@ class Main {
     /**
     * Get posts from page
     * @return   GraphEdge   Object of posts with requested fields
+    * @return   array       Array of posts if using basic get
     * @return   null        On error
     */
     private function getPosts() {
         $request = '/' . $this->pageId . '/posts?fields=' . $this->fields . '&limit=' . $this->limit;
-        $response = $this->graphGet($request, $this->FB);
-        if ($response) {
-            return $response->getGraphEdge();
+        if (FBPP__PHP_VERSION == '5.6') {
+            $response = $this->graphGet($request, $this->FB);
+            if ($response) {
+                return $response->getGraphEdge();
+            }
+        } else {
+            $response = $this->basicGet($request, $this->accessToken, true);
+            if ($response) {
+                return $response;
+            }
         }
         
         return;
@@ -280,6 +295,29 @@ class Main {
             $this->errorText = 'Facebook SDK returned an error: ' . $e->getMessage();
             add_action('admin_notices', array($this, 'errorNoticeFacebook'));
             return;
+        }
+    }
+
+    /**
+    * Basic GET request to FB Graph endpoints
+    * @param    $req            Request string
+    * @param    $accessToken    Graph API access token
+    * @param    $returnData     Set to true to return 'data' entry of response array
+    * @return   array   Array of response data
+    * @return   null    On error
+    */
+    protected function basicGet($req, $accessToken, $returnData) {
+        $requestString =    'https://graph.facebook.com/' . FBPP__GRAPH_VERSION . '/' 
+                            . $req . '&access_token=' . $accessToken;
+        $data = file_get_contents($requestString);
+        if ($data === false) {
+            return;
+        }
+        $data = json_decode($data, true);
+        if ($returnData) {
+            return $data['data']; // Response also includes 'paging' for pagination cursors
+        } else {
+            return $data;
         }
     }
 

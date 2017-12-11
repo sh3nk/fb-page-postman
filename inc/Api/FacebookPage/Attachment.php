@@ -19,7 +19,11 @@ class Attachment {
     }
 
     public function register() {
-        $this->type = $this->attachment->getField('type');
+        if (FBPP__PHP_VERSION == '5.6') {
+            $this->type = $this->attachment->getField('type');
+        } else {
+            $this->type = $this->attachment['type'];
+        }
     }
 
     /**
@@ -32,7 +36,8 @@ class Attachment {
             return;
         }
 
-        $subattachments = $this->attachment->getField('subattachments');
+        $subattachments = (FBPP__PHP_VERSION == '5.6')  ? $this->attachment->getField('subattachments') 
+                                                        : $this->attachment['subattachments']['data'];
         
         foreach ($subattachments as $subattachment) {
             if (!$this->fieldsExist(array('media', 'image', 'src'), $subattachment)) {
@@ -40,14 +45,20 @@ class Attachment {
             }
 
             if (!isset($this->imgSrc)) {
-                $this->imgSrc = $subattachment->getField('media')->getField('image')->getField('src');
+                $this->imgSrc = (FBPP__PHP_VERSION == '5.6')
+                                ? $subattachment->getField('media')->getField('image')->getField('src')
+                                : $subattachment['media']['image']['src'];
             }
 
             if ($isSharedStory) {
                 break;
             }
 
-            array_push($this->subattachments, $subattachment->getField('media')->getField('image')->getField('src'));
+            if (FBPP__PHP_VERSION == '5.6') {
+                array_push($this->subattachments, $subattachment->getField('media')->getField('image')->getField('src'));
+            } else {
+                array_push($this->subattachments, $subattachment['media']['image']['src']);
+            }
         }
     }
 
@@ -56,7 +67,9 @@ class Attachment {
     */
     public function setSingleImage() {
         if ($this->fieldsExist(array('media', 'image', 'src'), $this->attachment)) {
-            $this->imgSrc = $this->attachment->getField('media')->getField('image')->getField('src');
+            $this->imgSrc = (FBPP__PHP_VERSION == '5.6')
+                            ? $this->attachment->getField('media')->getField('image')->getField('src')
+                            : $this->attachment['media']['image']['src'];
         }
     }
 
