@@ -39,6 +39,8 @@ class Post extends Main {
     private $styleClassVideoWrapper = 'fbpp-video-wrapper';
     private $styleClassEventLink = 'fbpp-event-link';
 
+    private $timeZoneName = 'Europe/Ljubljana';
+
     public function __construct($post, $fb) {
         $this->post = $post;
         $this->FB = $fb;
@@ -55,7 +57,8 @@ class Post extends Main {
                 $this->messageTags = null;
             }
             // $this->createdTime = $this->post->getField('created_time');
-            $this->createdTime = date_format($this->post->getField('created_time'), 'Y-m-d H:i:s');
+            $timeZone = new \DateTimeZone($this->timeZoneName);
+            $this->createdTime = date_format($this->post->getField('created_time')->setTimezone($timeZone), 'Y-m-d H:i:s');
             $this->permalinkUrl = $this->post->getField('permalink_url');
             $this->link = $this->post->getField('link');
             $this->name = $this->post->getField('name');
@@ -67,8 +70,8 @@ class Post extends Main {
             $this->message = (isset($this->post['message'])) ? $this->post['message'] : null;
             $this->messageTags = (isset($this->post['message_tags'])) ? $this->post['message_tags'] : null;
             $this->createdTime = (isset($this->post['created_time'])) 
-                                    ? date('Y-m-d H:i', strtotime($this->post['created_time'])) 
-                                    : date('Y-m-d H:i');
+                                    ? date('Y-m-d H:i:s', strtotime($this->post['created_time'])) 
+                                    : date('Y-m-d H:i:s');
             $this->permalinkUrl = (isset($this->post['permalink_url'])) ? $this->post['permalink_url'] : null;
             $this->link = (isset($this->post['link'])) ? $this->post['link'] : null;
             $this->name = (isset($this->post['name'])) ? $this->post['name'] : null;
