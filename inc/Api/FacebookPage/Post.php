@@ -47,7 +47,7 @@ class Post extends Main {
     }
 
     public function register() {
-        if (FBPP__PHP_VERSION == '5.6') {
+        if (FBPP__PHP_VERSION) {
             $this->statusType = $this->post->getField('status_type');
             $this->type = $this->post->getField('type');
             $this->id = $this->post->getField('id');
@@ -221,7 +221,7 @@ class Post extends Main {
         $isAlbumCover = true; // option (default true)
         $hasCover = false;
 
-        if (FBPP__PHP_VERSION == '5.6') {
+        if (FBPP__PHP_VERSION) {
             $response = $this->graphGet($attachmentsRequest, $this->FB);
             if ($response) {
                 return $response->getGraphEdge();
@@ -245,7 +245,7 @@ class Post extends Main {
     private function getEvent() {
         $eventRequest = '/' . $this->objectId . '?fields=cover';
 
-        if (FBPP__PHP_VERSION == '5.6') {
+        if (FBPP__PHP_VERSION) {
             $response = $this->graphGet($eventRequest, $this->FB);
             if ($response) {
                 return $response->getGraphNode();
@@ -336,12 +336,12 @@ class Post extends Main {
             $additionalOffset = 0; // increase offset if <a> tags are inserted
             
             foreach($messageTags as $tag) {
-                $tagType = (FBPP__PHP_VERSION == '5.6') ? $tag->getField('type') : $tag['type'];
+                $tagType = (FBPP__PHP_VERSION) ? $tag->getField('type') : $tag['type'];
                 if ($tagType != 'page' && $tagType != 'event') {
                     continue;
                 }
     
-                if (FBPP__PHP_VERSION == '5.6') {
+                if (FBPP__PHP_VERSION) {
                     $tagLink = '<a href="https://www.facebook.com/' . $tag->getField('id') . '">';
                     $tagOffset = $tag->getField('offset') + $additionalOffset;
                     $tagLength = $tag->getField('length');

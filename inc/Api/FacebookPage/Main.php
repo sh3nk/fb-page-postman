@@ -35,7 +35,7 @@ class Main {
             return;
         }
 
-        if (FBPP__PHP_VERSION == '5.6') {
+        if (FBPP__PHP_VERSION) {
             // Require FB PHP SDK
             require_once FBPP__PLUGIN_PATH . '/vendor/Facebook/autoload.php';
 
@@ -64,7 +64,7 @@ class Main {
         }
 
         foreach($posts as $post) {
-            if (FBPP__PHP_VERSION == '5.6') {
+            if (FBPP__PHP_VERSION) {
                 $post = new Post($post, $this->FB);
             } else {
                 $post = new Post($post, $this->accessToken);
@@ -260,7 +260,7 @@ class Main {
     */
     private function getPosts() {
         $request = '/' . $this->pageId . '/posts?fields=' . $this->fields . '&limit=' . $this->limit;
-        if (FBPP__PHP_VERSION == '5.6') {
+        if (FBPP__PHP_VERSION) {
             $response = $this->graphGet($request, $this->FB);
             if ($response) {
                 return $response->getGraphEdge();

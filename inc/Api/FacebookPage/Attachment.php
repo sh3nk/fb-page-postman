@@ -19,7 +19,7 @@ class Attachment {
     }
 
     public function register() {
-        if (FBPP__PHP_VERSION == '5.6') {
+        if (FBPP__PHP_VERSION) {
             $this->type = $this->attachment->getField('type');
         } else {
             $this->type = $this->attachment['type'];
@@ -36,7 +36,7 @@ class Attachment {
             return;
         }
 
-        $subattachments = (FBPP__PHP_VERSION == '5.6')  ? $this->attachment->getField('subattachments') 
+        $subattachments = (FBPP__PHP_VERSION)  ? $this->attachment->getField('subattachments') 
                                                         : $this->attachment['subattachments']['data'];
         
         foreach ($subattachments as $subattachment) {
@@ -45,7 +45,7 @@ class Attachment {
             }
 
             if (!isset($this->imgSrc)) {
-                $this->imgSrc = (FBPP__PHP_VERSION == '5.6')
+                $this->imgSrc = (FBPP__PHP_VERSION)
                                 ? $subattachment->getField('media')->getField('image')->getField('src')
                                 : $subattachment['media']['image']['src'];
             }
@@ -54,7 +54,7 @@ class Attachment {
                 break;
             }
 
-            if (FBPP__PHP_VERSION == '5.6') {
+            if (FBPP__PHP_VERSION) {
                 array_push($this->subattachments, $subattachment->getField('media')->getField('image')->getField('src'));
             } else {
                 array_push($this->subattachments, $subattachment['media']['image']['src']);
@@ -67,7 +67,7 @@ class Attachment {
     */
     public function setSingleImage() {
         if ($this->fieldsExist(array('media', 'image', 'src'), $this->attachment)) {
-            $this->imgSrc = (FBPP__PHP_VERSION == '5.6')
+            $this->imgSrc = (FBPP__PHP_VERSION)
                             ? $this->attachment->getField('media')->getField('image')->getField('src')
                             : $this->attachment['media']['image']['src'];
         }
