@@ -5,8 +5,11 @@
 
 namespace FBPPostman\Api\FacebookPage;
 
-class Attachment {
+use \FBPPostman\Api\FacebookPage\Main;
 
+class Attachment extends Main {
+
+    private $FB;
     private $attachment;
 
     public $type;
@@ -14,8 +17,9 @@ class Attachment {
     public $subattachments = array();
 
 
-    public function __construct($attachment) {
+    public function __construct($attachment, $fb) {
         $this->attachment = $attachment;
+        $this->FB = $fb;
     }
 
     public function register() {
@@ -36,29 +40,26 @@ class Attachment {
             return;
         }
 
-        $subattachments = (FBPP__PHP_VERSION)  ? $this->attachment->getField('subattachments') 
-                                                        : $this->attachment['subattachments']['data'];
+        $subattachments = (FBPP__PHP_VERSION)   ? $this->attachment->getField('subattachments') 
+                                                : $this->attachment['subattachments']['data'];
         
         foreach ($subattachments as $subattachment) {
             if (!$this->fieldsExist(array('media', 'image', 'src'), $subattachment)) {
                 continue;
             }
 
+            $imageId = (FBPP__PHP_VERSION)  ? $subattachment->getField('target')->getField('id') 
+                                            : $subattachment['target']['id'];
+
             if (!isset($this->imgSrc)) {
-                $this->imgSrc = (FBPP__PHP_VERSION)
-                                ? $subattachment->getField('media')->getField('image')->getField('src')
-                                : $subattachment['media']['image']['src'];
+                $this->imgSrc = $this->getImageUrl($imageId);
             }
 
             if ($isSharedStory) {
                 break;
             }
 
-            if (FBPP__PHP_VERSION) {
-                array_push($this->subattachments, $subattachment->getField('media')->getField('image')->getField('src'));
-            } else {
-                array_push($this->subattachments, $subattachment['media']['image']['src']);
-            }
+            array_push($this->subattachments, $this->getImageUrl($imageId));
         }
     }
 
@@ -67,10 +68,35 @@ class Attachment {
     */
     public function setSingleImage() {
         if ($this->fieldsExist(array('media', 'image', 'src'), $this->attachment)) {
-            $this->imgSrc = (FBPP__PHP_VERSION)
-                            ? $this->attachment->getField('media')->getField('image')->getField('src')
-                            : $this->attachment['media']['image']['src'];
+            $imageId = (FBPP__PHP_VERSION)
+                        ? $this->attachment->getField('target')->getField('id')
+                        : $this->attachment['target']['id'];
+            $this->imgSrc = $this->getImageUrl($imageId);
         }
+    }
+
+    /**
+    * Get attachment image
+    * @param    $id     Graph API Image Id
+    * @return   string  Url of max resolution image
+    * @return   null    On error
+    */
+    private function getImageUrl($id) {
+        $photoRequest = '/' . $id . '?fields=images{source}';
+
+        if (FBPP__PHP_VERSION) {
+            $response = $this->graphGet($photoRequest, $this->FB);
+            if ($response) {
+                return $response->getGraphNode()->getField('images')[0]->getField('source');
+            }
+        } else {
+            $response = $this->basicGet($photoRequest, $this->FB, false);
+            if ($response) {
+                return $response['images'][0]['source'];
+            }
+        }
+
+        return;
     }
 
     /**

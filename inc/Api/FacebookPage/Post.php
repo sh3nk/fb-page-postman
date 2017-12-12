@@ -97,7 +97,7 @@ class Post extends Main {
         }
 
         foreach ($attachments as $attachment) {
-            $attachment = new Attachment($attachment);
+            $attachment = new Attachment($attachment, $this->FB);
             $attachment->register();
 
             if (strpos($attachment->type, 'photo') !== false) {
@@ -214,7 +214,7 @@ class Post extends Main {
     */
     private function getAttachments() {
         $subattachmentLimit = 150; // option (1K max?)
-        $attachmentsFields = 'url,title,type,media,subattachments.limit(' . $subattachmentLimit . '){title,media,type}';
+        $attachmentsFields = 'type,media,target,subattachments.limit(' . $subattachmentLimit . '){media,type,target}';
         $attachmentsRequest = '/' . $this->id . '/attachments' . '?fields=' . $attachmentsFields;
 
         // Set first image of album as cover if no single image in post
