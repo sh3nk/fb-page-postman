@@ -59,6 +59,31 @@ class Settings {
                 'option_group' => 'fbpp_options_group',
                 'option_name' => 'fbpp_access_token',
                 'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_events',
+                'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_albums',
+                'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_videos',
+                'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_profile',
+                'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_cover',
+                'callback' => array($this, 'cbOptionsGroup')
             )
         );
 
@@ -71,6 +96,12 @@ class Settings {
                 'id' => 'fbpp_id_fields',
                 'title' => __('Settings', 'fbpp-textd'),
                 'callback' => array($this, 'cbAdminSection'),
+                'page' => 'fbpp_plugin'
+            ),
+            array(
+                'id' => 'fbpp_include_fields',
+                'title' => __('Post include settings', 'fbpp-textd'),
+                'callback' => array($this, 'cbIncludeFields'),
                 'page' => 'fbpp_plugin'
             )
         );
@@ -120,6 +151,56 @@ class Settings {
                     'label_for' => 'fbpp_access_token',
                     // 'class' => 'example-class'
                 )
+            ),
+            array(
+                'id' => 'fbpp_include_events',
+                'title' => 'Include event posts',
+                'callback' => array($this, 'cbIncludeEvents'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_events'
+                )
+            ),
+            array(
+                'id' => 'fbpp_include_albums',
+                'title' => 'Include post albums',
+                'callback' => array($this, 'cbIncludeAlbums'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_albums'
+                )
+            ),
+            array(
+                'id' => 'fbpp_include_videos',
+                'title' => 'Include video posts',
+                'callback' => array($this, 'cbIncludeVideos'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_videos'
+                )
+            ),
+            array(
+                'id' => 'fbpp_include_profile',
+                'title' => 'Include profile picture updates',
+                'callback' => array($this, 'cbIncludeProfile'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_profile'
+                )
+            ),
+            array(
+                'id' => 'fbpp_include_cover',
+                'title' => 'Include cover photo updates',
+                'callback' => array($this, 'cbIncludeCover'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_cover'
+                )
             )
 
         );
@@ -136,31 +217,65 @@ class Settings {
     }
 
     public function cbAdminSection() {
-        echo __('Create your app on developers.facebook.com to get necessary settings.', 'fbpp-textd');
+        echo __('Create your app on developers.facebook.com to get the necessary settings.', 'fbpp-textd');
+    }
+
+    public function cbIncludeFields() {
+        echo __('Options to include or not include when publishing posts from Facebook.', 'fbpp-textd');
     }
 
     public function cbPageId() {
         $value = esc_attr(get_option('fbpp_page_id'));
-        echo    '<input type="text" class="regular-text" name="fbpp_page_id" value="' . $value . 
+        echo    '<input type="text" class="regular-text" id="fbpp_page_id" name="fbpp_page_id" value="' . $value . 
                 '" placeholder="' . __('Unique ID of your Facebook group...', 'fbpp-textd') . '">';
     }
 
     public function cbAppId() {
         $value = esc_attr(get_option('fbpp_app_id'));
-        echo    '<input type="text" class="regular-text" name="fbpp_app_id" value="' . $value . 
+        echo    '<input type="text" class="regular-text" id="fbpp_app_id" name="fbpp_app_id" value="' . $value . 
                 '" placeholder="' . __('Your Facebook app ID...', 'fbpp-textd') . '">';
     }
 
     public function cbAppSecret() {
         $value = esc_attr(get_option('fbpp_app_secret'));
-        echo    '<input type="text" class="regular-text" name="fbpp_app_secret" value="' . $value . 
+        echo    '<input type="text" class="regular-text" id="fbpp_app_secret" name="fbpp_app_secret" value="' . $value . 
                 '" placeholder="' . __('Your Facebook app Secret code...', 'fbpp-textd') . '">';
     }
 
     public function cbAccessToken() {
         $value = esc_attr(get_option('fbpp_access_token'));
-        echo    '<input type="text" class="regular-text" name="fbpp_access_token" value="' . $value . 
+        echo    '<input type="text" class="regular-text" id="fbpp_access_token" name="fbpp_access_token" value="' . $value . 
                 '" placeholder="' . __('Your Facebook app access token...', 'fbpp-textd') . '">';
+    }
+
+    public function cbIncludeEvents() {
+        $value = esc_attr(get_option('fbpp_include_events'));
+        echo    '<input type="checkbox" id="fbpp_include_events" name="fbpp_include_events" value="1"' 
+                . checked(1, $value, false) . '>';
+    }
+
+    public function cbIncludeAlbums() {
+        $value = esc_attr(get_option('fbpp_include_albums'));
+        echo    '<input type="checkbox" id="fbpp_include_albums" name="fbpp_include_albums" value="1"' 
+                . checked(1, $value, false) . '>';
+    }
+
+    public function cbIncludeVideos() {
+        $value = esc_attr(get_option('fbpp_include_videos'));
+        echo    '<input type="checkbox" id="fbpp_include_videos" name="fbpp_include_videos" value="1"' 
+                . checked(1, $value, false) . '>';
+    }
+
+    public function cbIncludeProfile() {
+        $value = esc_attr(get_option('fbpp_include_profile'));
+        echo    '<input type="checkbox" id="fbpp_include_profile" name="fbpp_include_profile" value="1"' 
+                . checked(1, $value, false) . '>';
+    }
+
+    public function cbIncludeCover() {
+        $value = esc_attr(get_option('fbpp_include_cover'));
+        echo    '<input type="checkbox" id="fbpp_include_cover" name="fbpp_include_cover" value="1"' 
+                . checked(1, $value, false) . '>';
     }
 
     public static function getClass() {

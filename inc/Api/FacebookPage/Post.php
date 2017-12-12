@@ -111,6 +111,12 @@ class Post extends Main {
 
             if (strpos($attachment->type, 'photo') !== false) {
                 $attachment->setSingleImage();
+            } elseif ($attachment->type == 'new_album') {
+                // new_album attachment target entry points to album url not image
+                // only take subattachments / set featured image from subattachments
+                $isSharedStory = ($this->statusType == 'shared_story');
+                $attachment->setSubattachments($isSharedStory);
+                array_push($this->albums, $attachment->subattachments);
             } elseif (strpos($attachment->type, 'album') !== false) {
                 $attachment->setSingleImage();
                 $isSharedStory = ($this->statusType == 'shared_story');

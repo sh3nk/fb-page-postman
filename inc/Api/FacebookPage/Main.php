@@ -15,7 +15,7 @@ class Main {
     private $publishQueue = array(); // array of posts to be published on next hook
 
     private $fields = 'id,created_time,message,message_tags,status_type,type,link,name,object_id,permalink_url';
-    private $limit = 13;
+    private $limit = 4;
     private $publishHook = 'after_setup_theme';
     private $categoryName = 'facebook';
 
@@ -104,6 +104,9 @@ class Main {
             $content = '';
 
             if ($post->type == 'video') {
+                if (!get_option('fbpp_include_videos')) {
+                    continue;
+                }
                 // $post->prepareVideo();
                 $content = $post->getContentVideo();
             } elseif ($post->type == 'photo') {

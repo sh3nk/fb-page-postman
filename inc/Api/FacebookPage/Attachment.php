@@ -98,12 +98,12 @@ class Attachment extends Main {
         if (FBPP__PHP_VERSION) {
             $response = $this->graphGet($photoRequest, $this->FB);
             if ($response) {
-                return $response->getGraphNode()->getField('images')[0]->getField('source');
+                return $response->getGraphNode()->getField('images')[1]->getField('source');
             }
         } else {
             $response = $this->basicGet($photoRequest, $this->FB, false);
             if ($response) {
-                return $response['images'][0]['source'];
+                return $response['images'][1]['source'];
             }
         }
 
