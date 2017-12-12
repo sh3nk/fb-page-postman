@@ -76,6 +76,17 @@ class Attachment extends Main {
     }
 
     /**
+    * Set featured image of attachment from media field
+    */
+    public function setSingleImageMedia() {
+        if ($this->fieldsExist(array('media', 'image', 'src'), $this->attachment)) {
+            $this->imgSrc = (FBPP__PHP_VERSION)
+                            ? $this->attachment->getField('media')->getField('image')->getField('src')
+                            : $this->attachment['media']['image']['src'];
+        }
+    }
+
+    /**
     * Get attachment image
     * @param    $id     Graph API Image Id
     * @return   string  Url of max resolution image

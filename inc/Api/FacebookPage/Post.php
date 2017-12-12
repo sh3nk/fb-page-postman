@@ -86,6 +86,8 @@ class Post extends Main {
 
     /**
     * Prepare data for post of type 'photo'
+    * @return   null    On error / no images
+    * @return   string  Type of first attachment
     */
     public function preparePhoto() {
         if ($this->type != 'photo') {
@@ -97,9 +99,15 @@ class Post extends Main {
             return;
         }
 
+        $firstType = null;
+
         foreach ($attachments as $attachment) {
             $attachment = new Attachment($attachment, $this->FB);
             $attachment->register();
+
+            if (!$firstType) {
+                $firstType = $attachment->type;
+            }
 
             if (strpos($attachment->type, 'photo') !== false) {
                 $attachment->setSingleImage();
@@ -108,12 +116,16 @@ class Post extends Main {
                 $isSharedStory = ($this->statusType == 'shared_story');
                 $attachment->setSubattachments($isSharedStory);
                 array_push($this->albums, $attachment->subattachments);
+            } elseif ($attachment->type == 'profile_media') {
+                $attachment->setSingleImageMedia();
             }
 
             if (!isset($this->featuredImage) && isset($attachment->imgSrc)) {
                 $this->featuredImage = $attachment->imgSrc;
             }
         }
+
+        return $firstType;
     }
 
     /**
