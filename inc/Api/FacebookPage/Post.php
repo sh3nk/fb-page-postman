@@ -31,6 +31,7 @@ class Post extends Main {
     public $featuredImage = NULL;
     public $albums = array();
 
+    private $styleClassDefault = 'fbpp-default';
     private $styleClassVideo = 'fbpp-video';
     private $styleClassPhoto = 'fbpp-photo';
     private $styleClassEvent = 'fbpp-event';
@@ -134,6 +135,17 @@ class Post extends Main {
         if (!isset($this->featuredImage) && isset($event->imgSrc)) {
             $this->featuredImage = $event->imgSrc;
         }
+    }
+
+    /**
+    * Compose content for default post - only message
+    * @return   string  Composed content of post
+    */
+    public function getContentDefault() {
+        $content = '<div class="' . $this->styleClassDefault . '"><p>' . $this->message . '</p></div>';
+        $content .= $this->originalLink();
+
+        return $content;
     }
 
     /**

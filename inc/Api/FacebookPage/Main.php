@@ -15,7 +15,7 @@ class Main {
     private $publishQueue = array(); // array of posts to be published on next hook
 
     private $fields = 'id,created_time,message,message_tags,status_type,type,link,name,object_id,permalink_url';
-    private $limit = 5;
+    private $limit = 13;
     private $publishHook = 'after_setup_theme';
     private $categoryName = 'facebook';
 
@@ -112,6 +112,8 @@ class Main {
             } elseif ($post->type == 'event') {
                 $post->prepareEvent();
                 $content = $post->getContentEvent();
+            } else {
+                $content = $post->getContentDefault();
             }
 
             // Available params: https://developer.wordpress.org/reference/functions/wp_insert_post/#parameters
