@@ -79,7 +79,13 @@ class Main {
                 $post->id
             ));
 
+            // Skip already published posts
             if ($isProcessed) {
+                continue;
+            }
+
+            // Skip post if cover photo update (duplicate post)
+            if ($post->name && strpos($post->name, 'cover photo') !== false) {
                 continue;
             }
 
