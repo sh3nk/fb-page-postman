@@ -16,8 +16,9 @@ class Main {
 
     private $fields = 'id,created_time,message,message_tags,status_type,type,link,name,object_id,permalink_url';
     private $limit = 4;
-    private $publishHook = 'after_setup_theme';
+    private $publishHook = 'fbpp_refresh_event';
     private $categoryName = 'facebook';
+    private $executionTime = 1200; // 20min
 
     private $errorText = ''; // Text for error notices
 
@@ -49,15 +50,16 @@ class Main {
         }
 
         // Register handler for publishing posts
-        add_action($this->publishHook, array($this, 'handlePublish'));
-
-        $this->latestPosts();
+        add_action($this->publishHook, array($this, 'latestPosts'));
     }
 
     /**
     * Request latest $limit posts from FB and add them to an array for publishment
+    * Performed on $publishHook
     */
-    private function latestPosts() {
+    public function latestPosts() {
+        $oldExecutionTime = ini_set('max_execution_time', $this->executionTime);
+
         $posts = $this->getPosts();
         if (!$posts) {
             return; // No posts received; possibly FB connection error
@@ -91,13 +93,17 @@ class Main {
 
             array_push($this->publishQueue, $post);
         }
+
+        $this->publishPosts();
+
+        // ini_restore('max_execution_time');
+        $oldExecutionTime = ini_set('max_execution_time', $oldExecutionTime);
     }
 
     /**
     * Parse content from post, set featured image
-    * Performed on $publishHook
     */
-    public function handlePublish() {
+    private function publishPosts() {
         $categoryId = get_cat_ID($this->categoryName);
 
         foreach ($this->publishQueue as $post) {
@@ -246,7 +252,6 @@ class Main {
 
         // Create attachment and attach it to $postId
         $attachId = wp_insert_attachment($attachment, $filepath, $postId);
-        $this->fbppLog("addPostImage -> wp_insert_attachment");
 
         if (is_wp_error($attachId)) {
             return false;
@@ -257,11 +262,9 @@ class Main {
     
         // Generate metadata
         $attachData = wp_generate_attachment_metadata($attachId, $filepath);
-        $this->fbppLog("addPostImage -> wp_generate_attachment_metadata");
 
         // Update database record
         wp_update_attachment_metadata($attachId, $attachData);
-        $this->fbppLog("addPostImage -> wp_update_attachment_metadata");
 
         return $attachId;
     }
@@ -367,7 +370,7 @@ class Main {
         file_put_contents(FBPP__PLUGIN_PATH . '/log.txt', "");
     }
 
-    protected function fbppLog($contents) {
+    protected function log($contents) {
         file_put_contents(FBPP__PLUGIN_PATH . '/log.txt', date("Y-m-d H:i:s") . "    " . $contents . "\n", FILE_APPEND);
     }
 
