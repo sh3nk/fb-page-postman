@@ -26,6 +26,7 @@ class Post extends Main {
     public $permalinkUrl; // Link to original post on Facebook
     public $link; // Link to media content
     public $name;
+    public $description;
     public $objectId;
     public $title;
     public $featuredImage = NULL;
@@ -38,6 +39,7 @@ class Post extends Main {
     private $styleClassMessage = 'fbpp-message';
     private $styleClassOriginalLink = 'fbpp-original-link';
     private $styleClassVideoWrapper = 'fbpp-video-wrapper';
+    private $styleClassVideoDescription = 'fbpp-video-description';
     private $styleClassEventLink = 'fbpp-event-link';
 
     private $timeZoneName = 'Europe/Ljubljana';
@@ -61,8 +63,9 @@ class Post extends Main {
             $timeZone = new \DateTimeZone($this->timeZoneName);
             $this->createdTime = date_format($this->post->getField('created_time')->setTimezone($timeZone), 'Y-m-d H:i:s');
             $this->permalinkUrl = $this->post->getField('permalink_url');
-            $this->link = $this->post->getField('link');
+            $this->link = $this->post->getField('link');            
             $this->name = $this->post->getField('name');
+            $this->description = $this->post->getField('description');
             $this->objectId = $this->post->getField('object_id');
         } else {
             $this->statusType = (isset($this->post['status_type'])) ? $this->post['status_type'] : null;
@@ -76,10 +79,16 @@ class Post extends Main {
             $this->permalinkUrl = (isset($this->post['permalink_url'])) ? $this->post['permalink_url'] : null;
             $this->link = (isset($this->post['link'])) ? $this->post['link'] : null;
             $this->name = (isset($this->post['name'])) ? $this->post['name'] : null;
+            $this->description = (isset($this->post['description'])) ? $this->post['description'] : null;
             $this->objectId = (isset($this->post['object_id'])) ? $this->post['object_id'] : null;
         }
 
         $this->title = wp_strip_all_tags($this->getTitle());
+
+        if ($this->description) {
+            $this->description = wp_strip_all_tags($this->description);
+            $this->description = str_replace(["\r\n", "\r", "\n"], "<br>", $this->description);
+        }
 
         $this->parseMessage();
     }
@@ -177,6 +186,16 @@ class Post extends Main {
 
         $content =  '<div class="' . $this->styleClassMessage . '"><p>' . $this->message . '</p></div>';
         $content .= '<div class="' . $this->styleClassVideoWrapper . '">[embed]' . $this->link . '[/embed]</div>';
+
+        $pieces = parse_url($this->link);
+        $domain = isset($pieces['host']) ? $pieces['host'] : $pieces['path'];
+        if (preg_match('/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,6})$/i', $domain, $regs)) {
+            $domain = $regs['domain'];
+        }
+
+        if ($this->description && $domain && $domain == 'facebook.com') {
+            $content .= '<div class="' . $this->styleClassVideoDescription . '">' . $this->description . '</div>';
+        }
 
         $content .= $this->originalLink();
         $content = '<div class="' . $this->styleClassVideo . '">' . $content . '</div>';

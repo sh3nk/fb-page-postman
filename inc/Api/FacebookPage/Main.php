@@ -14,8 +14,8 @@ class Main {
     private $pageId;
     private $publishQueue = array(); // array of posts to be published on next hook
 
-    private $fields = 'id,created_time,message,message_tags,status_type,type,link,name,object_id,permalink_url';
-    private $limit = 4;
+    private $fields = 'id,created_time,message,message_tags,status_type,type,link,name,description,object_id,permalink_url';
+    private $limit = 10;
     private $publishHook = 'fbpp_refresh_event';
     private $categoryName = 'facebook';
     private $executionTime = 1200; // 20min
@@ -198,6 +198,8 @@ class Main {
                     }
                 }
             }
+
+            $this->log('Published ' . $post->title);
             
         }
 
