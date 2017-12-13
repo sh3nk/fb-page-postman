@@ -77,6 +77,11 @@ class Settings {
             ),
             array(
                 'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_links',
+                'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
                 'option_name' => 'fbpp_include_profile',
                 'callback' => array($this, 'cbOptionsGroup')
             ),
@@ -183,6 +188,16 @@ class Settings {
                 )
             ),
             array(
+                'id' => 'fbpp_include_links',
+                'title' => 'Include link posts',
+                'callback' => array($this, 'cbIncludeLinks'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_links'
+                )
+            ),
+            array(
                 'id' => 'fbpp_include_profile',
                 'title' => 'Include profile picture updates',
                 'callback' => array($this, 'cbIncludeProfile'),
@@ -263,6 +278,12 @@ class Settings {
     public function cbIncludeVideos() {
         $value = esc_attr(get_option('fbpp_include_videos'));
         echo    '<input type="checkbox" id="fbpp_include_videos" name="fbpp_include_videos" value="1"' 
+                . checked(1, $value, false) . '>';
+    }
+
+    public function cbIncludeLinks() {
+        $value = esc_attr(get_option('fbpp_include_links'));
+        echo    '<input type="checkbox" id="fbpp_include_links" name="fbpp_include_links" value="1"' 
                 . checked(1, $value, false) . '>';
     }
 
