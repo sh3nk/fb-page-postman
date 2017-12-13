@@ -246,6 +246,7 @@ class Main {
 
         // Create attachment and attach it to $postId
         $attachId = wp_insert_attachment($attachment, $filepath, $postId);
+        $this->fbppLog("addPostImage -> wp_insert_attachment");
 
         if (is_wp_error($attachId)) {
             return false;
@@ -256,9 +257,11 @@ class Main {
     
         // Generate metadata
         $attachData = wp_generate_attachment_metadata($attachId, $filepath);
+        $this->fbppLog("addPostImage -> wp_generate_attachment_metadata");
 
         // Update database record
         wp_update_attachment_metadata($attachId, $attachData);
+        $this->fbppLog("addPostImage -> wp_update_attachment_metadata");
 
         return $attachId;
     }
@@ -358,6 +361,14 @@ class Main {
 
     public static function getClass() {
          return get_class();
+    }
+
+    private function resetLog() {
+        file_put_contents(FBPP__PLUGIN_PATH . '/log.txt', "");
+    }
+
+    protected function fbppLog($contents) {
+        file_put_contents(FBPP__PLUGIN_PATH . '/log.txt', date("Y-m-d H:i:s") . "    " . $contents . "\n", FILE_APPEND);
     }
 
 }
