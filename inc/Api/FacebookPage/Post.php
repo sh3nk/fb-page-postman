@@ -36,11 +36,13 @@ class Post extends Main {
     private $styleClassVideo = 'fbpp-video';
     private $styleClassPhoto = 'fbpp-photo';
     private $styleClassEvent = 'fbpp-event';
+    private $styleClassLink = 'fbpp-link';
     private $styleClassMessage = 'fbpp-message';
     private $styleClassOriginalLink = 'fbpp-original-link';
     private $styleClassVideoWrapper = 'fbpp-video-wrapper';
     private $styleClassVideoDescription = 'fbpp-video-description';
     private $styleClassEventLink = 'fbpp-event-link';
+    private $styleClassLinkDescription = 'fbpp-link-description';
 
     private $timeZoneName = 'Europe/Ljubljana';
 
@@ -165,14 +167,31 @@ class Post extends Main {
     }
 
     /**
-    * Compose content for default post - only message
-    * @return   string  Composed content of post
+    * Prepare data for post of type 'link'
     */
-    public function getContentDefault() {
-        $content = '<div class="' . $this->styleClassDefault . '"><p>' . $this->message . '</p></div>';
-        $content .= $this->originalLink();
+    public function prepareLink() {
+        if ($this->type != 'link') {
+            return;
+        }
 
-        return $content;
+        $attachments = $this->getAttachments();
+        if (!$attachments) {
+            return;
+        }
+
+        foreach ($attachments as $attachment) {
+            $attachment = new Attachment($attachment, $this->FB);
+            $attachment->register();
+
+            if ($attachment->type == 'share') {
+                $attachment->setSingleImageMedia();
+            }
+
+            if (!isset($this->featuredImage) && isset($attachment->imgSrc)) {
+                $this->featuredImage = $attachment->imgSrc;
+                break;
+            }
+        }
     }
 
     /**
@@ -246,6 +265,40 @@ class Post extends Main {
 
         $content .= $this->originalLink();
         $content = '<div class="' . $this->styleClassEvent . '">' . $content . '</div>';
+
+        return $content;
+    }
+
+    /**
+    * Compose content for default post - only message
+    * @return   string  Composed content of post
+    */
+    public function getContentLink() {
+        if ($this->type != 'link') {
+            return __('Wrong post type', 'fbpp-textd');
+        }
+
+        $content = '<div class="' . $this->styleClassMessage . '"><p>' . $this->message . '</p></div>';
+
+        $content .= '<p class="' . $this->styleClassLink . '"><a href=" ' . $this->link . '">' 
+                    . $this->name . '</a></p>';
+
+        if ($this->description) {
+            $content .= '<div class="' . $this->styleClassLinkDescription . '">' . $this->description . '</div>';
+        }
+
+        $content .= $this->originalLink();
+
+        return $content;
+    }
+
+    /**
+    * Compose content for default post - only message
+    * @return   string  Composed content of post
+    */
+    public function getContentDefault() {
+        $content = '<div class="' . $this->styleClassDefault . '"><p>' . $this->message . '</p></div>';
+        $content .= $this->originalLink();
 
         return $content;
     }

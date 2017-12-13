@@ -113,7 +113,6 @@ class Main {
                 if (!get_option('fbpp_include_videos')) {
                     continue;
                 }
-                // $post->prepareVideo();
                 $content = $post->getContentVideo();
             } elseif ($post->type == 'photo') {
                 $post->preparePhoto();
@@ -121,6 +120,9 @@ class Main {
             } elseif ($post->type == 'event') {
                 $post->prepareEvent();
                 $content = $post->getContentEvent();
+            } elseif ($post->type == 'link') {
+                $post->prepareLink();
+                $content = $post->getContentLink();
             } else {
                 $content = $post->getContentDefault();
             }
