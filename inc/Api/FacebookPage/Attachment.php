@@ -55,7 +55,7 @@ class Attachment extends Main {
                 $this->imgSrc = $this->getImageUrl($imageId);
             }
 
-            if ($isSharedStory) {
+            if ($isSharedStory || !get_option('fbpp_include_albums')) {
                 break;
             }
 

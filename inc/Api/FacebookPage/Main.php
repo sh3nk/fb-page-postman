@@ -86,11 +86,6 @@ class Main {
                 continue;
             }
 
-            // Skip post if cover photo update (duplicate post)
-            if ($post->name && strpos($post->name, 'cover photo') !== false) {
-                continue;
-            }
-
             array_push($this->publishQueue, $post);
         }
 
@@ -115,12 +110,23 @@ class Main {
                 }
                 $content = $post->getContentVideo();
             } elseif ($post->type == 'photo') {
-                $post->preparePhoto();
+                $photoType = $post->preparePhoto();
+                if (    $photoType == 'profile_media' && !get_option('fbpp_include_profile')
+                    ||  $photoType == 'cover_photo' && !get_option('fbpp_include_cover')
+                ) {
+                    continue;
+                }
                 $content = $post->getContentPhoto();
             } elseif ($post->type == 'event') {
+                if (!get_option('fbpp_include_events')) {
+                    continue;
+                }
                 $post->prepareEvent();
                 $content = $post->getContentEvent();
             } elseif ($post->type == 'link') {
+                if (!get_option('fbpp_include_links')) {
+                    continue;
+                }
                 $post->prepareLink();
                 $content = $post->getContentLink();
             } else {
