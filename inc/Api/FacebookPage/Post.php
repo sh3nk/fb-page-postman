@@ -30,6 +30,7 @@ class Post extends Main {
     public $objectId;
     public $title;
     public $featuredImage = NULL;
+    public $imageTitle; // Title of image for link share posts
     public $albums = array();
 
     private $styleClassDefault = 'fbpp-default';
@@ -209,6 +210,12 @@ class Post extends Main {
 
             if (!isset($this->featuredImage) && isset($attachment->imgSrc)) {
                 $this->featuredImage = $attachment->imgSrc;
+
+                // Set image name from external url (not FB image)
+                $components = parse_url($attachment->imgSrc);
+                parse_str($components['query'], $query);
+                $this->imageTitle = basename($query['url']);
+
                 break;
             }
         }

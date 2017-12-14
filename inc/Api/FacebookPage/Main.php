@@ -163,7 +163,7 @@ class Main {
             
             // Add Featured image
             if (isset($post->featuredImage)) {
-                $attachId = $this->addPostImage($post->featuredImage, $postId);
+                $attachId = $this->addPostImage($post->featuredImage, $postId, $post->imageTitle);
                 if ($attachId !== false) {
                     set_post_thumbnail($postId, $attachId);
                 }
@@ -218,9 +218,11 @@ class Main {
     * Save image from link at properly attach it to a post
     * @param    $imageUrl   URL of image to attach
     * @param    $postId     WP Post ID to attach image to
+    * @param    $name       Name for image
     * @return   int         ID of created attachment/image in WP database
+    * @return   false       On error
     */
-    private function addPostImage($imageUrl, $postId) {
+    private function addPostImage($imageUrl, $postId, $name) {
         $uploadDir = wp_upload_dir();
 
         // Get image data from FB image source url
@@ -231,8 +233,14 @@ class Main {
             return false;
         }
 
-        // Image name without the FB query parameters
-        $filename = strtok(basename($imageUrl), '?');
+        // Name from parameter or image name without the FB query parameters
+        $filename = ($name) ? $name : strtok(basename($imageUrl), '?');
+
+        // Retrieve file type from file name
+        $filetype = wp_check_filetype($filename, null);
+        if (empty($filetype['type'])) {
+            return false;
+        }
 
         $filepath = '';
         // Get save path... 
@@ -248,9 +256,6 @@ class Main {
         if (file_put_contents($filepath, $imageData) === false ) {
             return false;
         }
-
-        // Retrieve file type from file name
-        $filetype = wp_check_filetype($filename, null);
 
         $attachment = array(
             'guid' => $uploadDir['url'] . '/' . $filename,
