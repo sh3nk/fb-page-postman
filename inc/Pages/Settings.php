@@ -62,12 +62,27 @@ class Settings {
             ),
             array(
                 'option_group' => 'fbpp_options_group',
-                'option_name' => 'fbpp_include_events',
+                'option_name' => 'fbpp_include_text_posts',
+                'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_image_posts',
+                'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_album_posts',
                 'callback' => array($this, 'cbOptionsGroup')
             ),
             array(
                 'option_group' => 'fbpp_options_group',
                 'option_name' => 'fbpp_include_albums',
+                'callback' => array($this, 'cbOptionsGroup')
+            ),
+            array(
+                'option_group' => 'fbpp_options_group',
+                'option_name' => 'fbpp_include_events',
                 'callback' => array($this, 'cbOptionsGroup')
             ),
             array(
@@ -158,6 +173,46 @@ class Settings {
                 )
             ),
             array(
+                'id' => 'fbpp_include_text_posts',
+                'title' => 'Include text-only posts',
+                'callback' => array($this, 'cbIncludeTextPosts'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_text_posts'
+                )
+            ),
+            array(
+                'id' => 'fbpp_include_image_posts',
+                'title' => 'Include single image posts',
+                'callback' => array($this, 'cbIncludeImagePosts'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_image_posts'
+                )
+            ),
+            array(
+                'id' => 'fbpp_include_album_posts',
+                'title' => 'Include posts with albums',
+                'callback' => array($this, 'cbIncludeAlbumPosts'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_album_posts'
+                )
+            ),
+            array(
+                'id' => 'fbpp_include_albums',
+                'title' => 'Include full albums',
+                'callback' => array($this, 'cbIncludeAlbums'),
+                'page' => 'fbpp_plugin',
+                'section' => 'fbpp_include_fields',
+                'args' => array(
+                    'label_for' => 'fbpp_include_albums'
+                )
+            ),
+            array(
                 'id' => 'fbpp_include_events',
                 'title' => 'Include event posts',
                 'callback' => array($this, 'cbIncludeEvents'),
@@ -165,16 +220,6 @@ class Settings {
                 'section' => 'fbpp_include_fields',
                 'args' => array(
                     'label_for' => 'fbpp_include_events'
-                )
-            ),
-            array(
-                'id' => 'fbpp_include_albums',
-                'title' => 'Include post albums',
-                'callback' => array($this, 'cbIncludeAlbums'),
-                'page' => 'fbpp_plugin',
-                'section' => 'fbpp_include_fields',
-                'args' => array(
-                    'label_for' => 'fbpp_include_albums'
                 )
             ),
             array(
@@ -263,15 +308,33 @@ class Settings {
                 '" placeholder="' . __('Your Facebook app access token...', 'fbpp-textd') . '">';
     }
 
-    public function cbIncludeEvents() {
-        $value = esc_attr(get_option('fbpp_include_events'));
-        echo    '<input type="checkbox" id="fbpp_include_events" name="fbpp_include_events" value="1"' 
+    public function cbIncludeTextPosts() {
+        $value = esc_attr(get_option('fbpp_include_text_posts'));
+        echo    '<input type="checkbox" id="fbpp_include_text_posts" name="fbpp_include_text_posts" value="1"' 
+                . checked(1, $value, false) . '>';
+    }
+
+    public function cbIncludeImagePosts() {
+        $value = esc_attr(get_option('fbpp_include_image_posts'));
+        echo    '<input type="checkbox" id="fbpp_include_image_posts" name="fbpp_include_image_posts" value="1"' 
+                . checked(1, $value, false) . '>';
+    }
+
+    public function cbIncludeAlbumPosts() {
+        $value = esc_attr(get_option('fbpp_include_album_posts'));
+        echo    '<input type="checkbox" id="fbpp_include_album_posts" name="fbpp_include_album_posts" value="1"' 
                 . checked(1, $value, false) . '>';
     }
 
     public function cbIncludeAlbums() {
         $value = esc_attr(get_option('fbpp_include_albums'));
         echo    '<input type="checkbox" id="fbpp_include_albums" name="fbpp_include_albums" value="1"' 
+                . checked(1, $value, false) . '>';
+    }
+    
+    public function cbIncludeEvents() {
+        $value = esc_attr(get_option('fbpp_include_events'));
+        echo    '<input type="checkbox" id="fbpp_include_events" name="fbpp_include_events" value="1"' 
                 . checked(1, $value, false) . '>';
     }
 

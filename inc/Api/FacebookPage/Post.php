@@ -122,17 +122,26 @@ class Post extends Main {
             }
 
             if ($attachment->type == 'cover_photo') {
-                $attachment->setSingleImageMedia();
                 if (!get_option('fbpp_include_cover')) {
                     return 'cover_photo';
                 }
+                $attachment->setSingleImageMedia();
             } elseif (strpos($attachment->type, 'photo') !== false) {
+                if (!get_option('fbpp_include_image_posts')) {
+                    return 'photo';
+                }
                 $attachment->setSingleImage();
             } elseif ($attachment->type == 'new_album') {
                 // new_album attachment target entry points to album url not image
                 // only take subattachments / set featured image from subattachments
+                
+                if (!get_option('fbpp_include_album_posts')) {
+                    return 'album';
+                }
+
                 $isSharedStory = ($this->statusType == 'shared_story');
                 $attachment->setSubattachments($isSharedStory);
+
                 if (!get_option('fbpp_include_albums')) {
                     if (!isset($this->featuredImage) && isset($attachment->imgSrc)) {
                         $this->featuredImage = $attachment->imgSrc;
@@ -141,9 +150,14 @@ class Post extends Main {
                 }
                 array_push($this->albums, $attachment->subattachments);
             } elseif (strpos($attachment->type, 'album') !== false) {
+                if (!get_option('fbpp_include_album_posts')) {
+                    return 'album';
+                }
+
                 $attachment->setSingleImage();
                 $isSharedStory = ($this->statusType == 'shared_story');
                 $attachment->setSubattachments($isSharedStory);
+
                 if (!get_option('fbpp_include_albums')) {
                     if (!isset($this->featuredImage) && isset($attachment->imgSrc)) {
                         $this->featuredImage = $attachment->imgSrc;
@@ -152,10 +166,10 @@ class Post extends Main {
                 }
                 array_push($this->albums, $attachment->subattachments);
             } elseif ($attachment->type == 'profile_media') {
-                $attachment->setSingleImageMedia();
                 if (!get_option('fbpp_include_profile')) {
                     return 'profile_media';
                 }
+                $attachment->setSingleImageMedia();
             }
 
             if (!isset($this->featuredImage) && isset($attachment->imgSrc)) {

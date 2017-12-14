@@ -15,7 +15,7 @@ class Main {
     private $publishQueue = array(); // array of posts to be published on next hook
 
     private $fields = 'id,created_time,message,message_tags,status_type,type,link,name,description,object_id,permalink_url';
-    private $limit = 10;
+    private $limit = 15;
     private $publishHook = 'fbpp_refresh_event';
     private $categoryName = 'facebook';
     private $executionTime = 1200; // 20min
@@ -111,8 +111,10 @@ class Main {
                 $content = $post->getContentVideo();
             } elseif ($post->type == 'photo') {
                 $photoType = $post->preparePhoto();
-                if (    $photoType == 'profile_media' && !get_option('fbpp_include_profile')
-                    ||  $photoType == 'cover_photo' && !get_option('fbpp_include_cover')
+                if (    $photoType == 'cover_photo' && !get_option('fbpp_include_cover')
+                    ||  $photoType == 'photo' && !get_option('fbpp_include_image_posts')
+                    ||  $photoType == 'album' && !get_option('fbpp_include_album_posts')
+                    ||  $photoType == 'profile_media' && !get_option('fbpp_include_profile')
                 ) {
                     continue;
                 }
@@ -130,6 +132,9 @@ class Main {
                 $post->prepareLink();
                 $content = $post->getContentLink();
             } else {
+                if (!get_option('fbpp_include_text_posts')) {
+                    continue;
+                }
                 $content = $post->getContentDefault();
             }
 
