@@ -15,7 +15,7 @@ class Main {
     private $publishQueue = array(); // array of posts to be published on next hook
 
     private $fields = 'id,created_time,message,message_tags,status_type,type,link,name,description,object_id,permalink_url';
-    private $limit = 15;
+    private $limit = 3;
     private $publishHook = 'fbpp_refresh_event';
     private $categoryName = 'facebook';
     private $executionTime = 1200; // 20min
@@ -58,6 +58,7 @@ class Main {
     * Performed on $publishHook
     */
     public function latestPosts() {
+        // Set longer exectuion time (process runs in background)
         $oldExecutionTime = ini_set('max_execution_time', $this->executionTime);
 
         $posts = $this->getPosts();

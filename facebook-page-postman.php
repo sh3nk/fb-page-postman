@@ -7,7 +7,7 @@
 Plugin Name: Facebook Page Postman
 Plugin URI: http://senk.eu
 Description: Plugin for automatically getting posts from a Facebook page and publishing them to a Wordpress site.
-Version: 0.1
+Version: 0.2
 Author: Simon Shenk
 Author URI: http://senk.eu
 License: GPLv2 or later

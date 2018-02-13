@@ -8,7 +8,7 @@ namespace FBPPostman\Base;
 class Activate {
 
     public static function activate() {
-        self::scheduleEvents();
+        // self::scheduleEvents(); // Since 0.2 activated on button click in settings (/templates/settings.php)
 
         // Creates new category if it does not already exist
         $catId = wp_create_category('facebook');
