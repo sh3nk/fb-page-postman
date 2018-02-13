@@ -342,8 +342,11 @@ class Post extends Main {
     }
 
     private function originalLink() {
-        return  '<br><p class="' . $this->styleClassOriginalLink . '"><a href="' 
-                . $this->permalinkUrl . '">' . __('Link to original post', 'fbpp-textd') . '</a></p>';
+        if (!get_option('fbpp_content_original')) {
+            return;
+        }
+        return  '<br><div class="' . $this->styleClassOriginalLink . '"><a href="' 
+                . $this->permalinkUrl . '">' . get_option('fbpp_content_original_text') . '</a></div>';
     }
 
     /**
@@ -472,7 +475,7 @@ class Post extends Main {
     
         // Handle message tags - links to page tags
         // Field 'message_tags' must exist and must be non-empty
-        if ($messageTags) {
+        if ($messageTags && get_option('fbpp_content_tags')) {
             $additionalOffset = 0; // increase offset if <a> tags are inserted
             
             foreach($messageTags as $tag) {

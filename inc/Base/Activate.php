@@ -10,12 +10,13 @@ class Activate {
     public static function activate() {
         // self::scheduleEvents(); // Since 0.2 activated on button click in settings (/templates/settings.php)
 
+        // Since 0.2 moved to settings (run in /inc/Api/FacebookPage/Main.php)
         // Creates new category if it does not already exist
-        $catId = wp_create_category('facebook');
-        if (is_wp_error($catId)) {
-            echo $catId->get_error_message();
-            exit;
-        }
+        // $catId = wp_create_category('facebook');
+        // if (is_wp_error($catId)) {
+        //     echo $catId->get_error_message();
+        //     exit;
+        // }
 
         flush_rewrite_rules();
     }

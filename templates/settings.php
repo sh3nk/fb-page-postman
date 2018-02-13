@@ -61,9 +61,10 @@
             <form method="post" action="">
                 <?php wp_nonce_field('fbpp_run_manual'); ?>
                 <input type="hidden" value="true" name="fbpp_manual">
-                <?php  submit_button(__('Run now.', 'fbpp-textd'), 'secondary', 'fbpp-run-now', false); ?>
+                <?php  submit_button(__('Run now', 'fbpp-textd'), 'secondary', 'fbpp-run-now', false); ?>
             </form>
         </p>
+        <hr>
     <?php endif; ?>
 
     <form method="post" action="options.php">

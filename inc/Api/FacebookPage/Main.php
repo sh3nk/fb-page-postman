@@ -15,7 +15,7 @@ class Main {
     private $publishQueue = array(); // array of posts to be published on next hook
 
     private $fields = 'id,created_time,message,message_tags,status_type,type,link,name,description,object_id,permalink_url';
-    private $limit = 3;
+    private $limit = 10;
     private $publishHook = 'fbpp_refresh_event';
     private $categoryName = 'facebook';
     private $executionTime = 1200; // 20min
@@ -29,12 +29,18 @@ class Main {
         $appSecret = get_option('fbpp_app_secret');
         $this->accessToken = get_option('fbpp_access_token');
         $this->pageId = get_option('fbpp_page_id');
+
+        $this->limit = get_option('fbpp_include_limit') ? get_option('fbpp_include_limit') : 10;
         
         // Check if all settings are set, else display notice and stop execution
         if (!$appId || !$appSecret || !$this->accessToken || !$this->pageId) {
             add_action('admin_notices', array($this, 'errorNoticeSettings'));
             return;
         }
+
+        // Creates new category if it does not already exist
+        $this->categoryName = get_option('fbpp_content_category') ? get_option('fbpp_content_category') : 'facebook';
+        add_action('admin_init', array($this, 'getCategory'));
 
         if (FBPP__PHP_VERSION) {
             // Require FB PHP SDK
@@ -380,6 +386,18 @@ class Main {
     public function errorNoticeCreate() {
         echo    '<div class="error notice is-dismissible"><p>Facebook Page Postman: ' . 
                 __('Could not create post.', 'fbpp-textd') . '</p></div>';
+    }
+
+    /**
+    * Handler function to create category if it does not exist
+    * Added to 'admin_init' hook
+    */
+    public function getCategory() {
+        $catId = wp_create_category($this->categoryName);
+        if (is_wp_error($catId)) {
+            echo $catId->get_error_message();
+            exit;
+        }
     }
 
     public static function getClass() {
